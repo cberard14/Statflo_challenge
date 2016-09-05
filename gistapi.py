@@ -140,21 +140,22 @@ def search():
     gists = gists_for_user(username)
     # BONUS: Handle invalid users?
     ##### Handling invalid users and API rate limit encounters here
-    if gists['message']=='Not Found':
-        print "User does not exist"
-        result['status'] = 'failure, search not completed'
-        result['username'] = username
-        result['pattern'] = pattern
-        result['matches'] = []
-        return jsonify(result)
+    if type(gists) is dict:
+        if gists['message']=='Not Found':
+            print "User does not exist"
+            result['status'] = 'failure, search not completed'
+            result['username'] = username
+            result['pattern'] = pattern
+            result['matches'] = []
+            return jsonify(result)
 
-    elif gists['message'][:23]=='API rate limit exceeded':
-        print "API rate limit exceeded"
-        result['status'] = 'failure, search not completed'
-        result['username'] = username
-        result['pattern'] = pattern
-        result['matches'] = []
-        return jsonify(result)
+        elif gists['message'][:23]=='API rate limit exceeded':
+            print "API rate limit exceeded"
+            result['status'] = 'failure, search not completed'
+            result['username'] = username
+            result['pattern'] = pattern
+            result['matches'] = []
+            return jsonify(result)
     ##### error handling done
 
     matching_urls_masterlist=[]
@@ -162,9 +163,10 @@ def search():
     for gist in gists:
         # REQUIRED: Fetch each gist and check for the pattern
         urls_containing_pattern=search_urls(get_all_urls(gist),pattern)
-        matching_urls_masterlist.append(urls_containing_pattern)
         if (urls_containing_pattern != []):
             matches_found=True
+            for url in urls_containing_pattern:
+                matching_urls_masterlist.append(url)
 
     if (matches_found==False):
         result['status'] = 'no match'
@@ -172,7 +174,7 @@ def search():
         result['status'] = 'success'
     result['username'] = username
     result['pattern'] = pattern
-    result['matches'] = urls_containing_pattern
+    result['matches'] = matching_urls_masterlist
 
     return jsonify(result)
 
